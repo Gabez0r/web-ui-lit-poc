@@ -5,7 +5,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const TSLintPlugin = require('tslint-webpack-plugin');
-const PrettierPlugin = require("prettier-webpack-plugin");
 
 const ENV = process.argv.find(arg => arg.includes('production'))
   ? 'production'
@@ -57,7 +56,6 @@ const development = merge([
         config: './tslint.json',
         fix: true
       }),
-      new PrettierPlugin(),
     ],
     devServer: {
       contentBase: TARGET,

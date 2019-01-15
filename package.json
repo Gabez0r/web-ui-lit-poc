@@ -39,7 +39,6 @@
     "pixelmatch": "^4.0.2",
     "polymer-cli": "^1.9.2",
     "prettier": "^1.15.3",
-    "prettier-webpack-plugin": "^1.2.0",
     "puppeteer": "^1.5.0",
     "ts-loader": "^5.3.3",
     "tslint": "^5.12.1",
