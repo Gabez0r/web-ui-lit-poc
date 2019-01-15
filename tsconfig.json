@@ -5,6 +5,7 @@
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "node",
+    "typeRoots": ["node_modules/@types", "typings"],
     "esModuleInterop": true,
     "experimentalDecorators": true
   },
