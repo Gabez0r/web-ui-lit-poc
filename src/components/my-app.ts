@@ -16,9 +16,11 @@ import { installOfflineWatcher } from 'pwa-helpers/network.js';
 import { installRouter } from 'pwa-helpers/router.js';
 
 // These are the elements needed by this element.
+import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
 import '@polymer/app-layout/app-drawer/app-drawer.js';
+import '@polymer/app-layout/app-header-layout/app-header-layout.js';
 import '@polymer/app-layout/app-header/app-header.js';
-import '@polymer/app-layout/app-scroll-effects/effects/waterfall.js';
+import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { menuIcon } from './my-icons';
 import './snack-bar';
@@ -50,7 +52,7 @@ class MyApp extends LitElement {
     setPassiveTouchGestures(true);
   }
 
-  public render() {
+  protected render() {
     // Anything that's related to rendering should be done in here.
     return html`
       <style>
@@ -77,11 +79,11 @@ class MyApp extends LitElement {
           --nuxeo-primary-color: #ccc;
         }
 
+        app-drawer-layout:not([narrow]) [drawer-toggle] {
+          display: none;
+        }
+
         app-header {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
           text-align: center;
           background-color: var(--app-header-background-color);
           color: var(--app-header-text-color);
@@ -156,7 +158,7 @@ class MyApp extends LitElement {
 
         .main-content {
           padding-top: 64px;
-          min-height: 100vh;
+          /* min-height: 100vh; */
         }
 
         .page {
@@ -166,76 +168,50 @@ class MyApp extends LitElement {
         .page[active] {
           display: block;
         }
-
-        footer {
-          padding: 24px;
-          background: var(--app-drawer-background-color);
-          color: var(--app-drawer-text-color);
-          text-align: center;
-        }
-
-        /* Wide layout: when the viewport width is bigger than 460px, layout
-      changes to a wide layout. */
-        @media (min-width: 460px) {
-          .toolbar-list {
-            display: block;
-          }
-
-          .menu-btn {
-            display: none;
-          }
-
-          .main-content {
-            padding-top: 107px;
-          }
-
-          /* The drawer button isn't shown in the wide layout, so we don't
-        need to offset the title */
-          [main-title] {
-            padding-right: 0px;
-          }
-        }
       </style>
 
-      <!-- Header -->
-      <app-header condenses reveals effects="waterfall">
-        <app-toolbar class="toolbar-top">
-          <button
-            class="menu-btn"
-            title="Menu"
-            @click="${this._menuButtonClicked}"
-          >
-            ${menuIcon}
-          </button>
-          <div main-title>${this.appTitle}</div>
-        </app-toolbar>
-
-        <!-- This gets hidden on a small screen-->
-        <nav class="toolbar-list">
-          <a ?selected="${this._page === 'doc'}" href="/doc">Doc reader</a>
-        </nav>
-      </app-header>
-
       <!-- Drawer content -->
-      <app-drawer
-        .opened="${this._drawerOpened}"
-        @opened-changed="${this._drawerOpenedChanged}"
-      >
-        <nav class="drawer-list">
-          <a ?selected="${this._page === 'doc'}" href="/doc">Doc reader</a>
-        </nav>
-      </app-drawer>
+      <app-drawer-layout>
+        <app-drawer swipe-open slot="drawer">
+          <nav class="drawer-list">
+            <a ?selected="${this._page === 'doc'}" href="/doc">Doc Browser</a>
+            <a ?selected="${this._page === 'browse'}" href="/browse">Browse</a>
+          </nav>
+        </app-drawer>
 
-      <!-- Main content -->
-      <main role="main" class="main-content">
-        <doc-reader class="page" ?active="${this._page === 'doc'}"></doc-reader>
-        <my-view404
-          class="page"
-          ?active="${this._page === 'view404'}"
-        ></my-view404>
-      </main>
+        <!-- Header -->
+        <app-header-layout>
+          <app-header
+            condenses
+            reveals
+            shadow
+            effects="blend-background parallax-background waterfall"
+          >
+            <app-toolbar class="toolbar-top">
+              <button class="menu-btn" title="Menu" drawer-toggle>
+                ${menuIcon}
+              </button>
+              <div main-title>${this.appTitle}</div>
+            </app-toolbar>
+          </app-header>
 
-      <footer><p>Made with &hearts; by the Polymer team.</p></footer>
+          <!-- Main content -->
+          <main role="main" class="main-content">
+            <doc-reader
+              class="page"
+              ?active="${this._page === 'doc'}"
+            ></doc-reader>
+            <poc-browser
+              class="page"
+              ?active="${this._page === 'browse'}"
+            ></poc-browser>
+            <my-view404
+              class="page"
+              ?active="${this._page === 'view404'}"
+            ></my-view404>
+          </main>
+        </app-header-layout>
+      </app-drawer-layout>
 
       <snack-bar ?active="${this._snackbarOpened}">
         You are now ${this._offline ? 'offline' : 'online'}.</snack-bar
@@ -243,13 +219,13 @@ class MyApp extends LitElement {
     `;
   }
 
-  public firstUpdated() {
+  protected firstUpdated() {
     installRouter(() => this._locationChanged());
     installOfflineWatcher((offline) => this._offlineChanged(offline));
     installMediaQueryWatcher(`(min-width: 460px)`, () => this._layoutChanged());
   }
 
-  public updated(changedProps: Map<string, object>) {
+  protected updated(changedProps: Map<string, object>) {
     if (changedProps.has('_page')) {
       const pageTitle = this.appTitle + ' - ' + this._page;
       updateMetadata({
@@ -260,12 +236,12 @@ class MyApp extends LitElement {
     }
   }
 
-  public _layoutChanged() {
+  private _layoutChanged() {
     // The drawer doesn't make sense in a wide layout, so if it's opened, close it.
-    this._updateDrawerState(false);
+    // this._updateDrawerState(false);
   }
 
-  public _offlineChanged(offline: boolean) {
+  private _offlineChanged(offline: boolean) {
     const previousOffline = this._offline;
     this._offline = offline;
 
@@ -273,7 +249,6 @@ class MyApp extends LitElement {
     if (previousOffline === undefined) {
       return;
     }
-
     window.clearTimeout(this.__snackbarTimer);
     this._snackbarOpened = true;
     this.__snackbarTimer = window.setTimeout(() => {
@@ -281,27 +256,19 @@ class MyApp extends LitElement {
     }, 3000);
   }
 
-  public _locationChanged() {
+  private _locationChanged() {
     const path = decodeURIComponent(window.location.pathname);
     const page = path === '/' ? 'doc' : path.slice(1);
     this._loadPage(page);
-    // Any other info you might want to extract from the path (like page type),
-    // you can do here.
-
-    // Close the drawer - in case the *path* change came from a link in the drawer.
-    this._updateDrawerState(false);
   }
 
-  public _updateDrawerState(opened: boolean) {
-    if (opened !== this._drawerOpened) {
-      this._drawerOpened = opened;
-    }
-  }
-
-  public _loadPage(page: string) {
+  private _loadPage(page: string) {
     switch (page) {
       case 'doc':
         import(/* webpackChunkName: "doc-reader" */ '../components/doc-reader');
+        break;
+      case 'browse':
+        import(/* webpackChunkName: "poc-browser" */ '../components/poc-browser');
         break;
       default:
         page = 'view404';
@@ -309,13 +276,5 @@ class MyApp extends LitElement {
     }
 
     this._page = page;
-  }
-
-  public _menuButtonClicked() {
-    this._updateDrawerState(true);
-  }
-
-  public _drawerOpenedChanged(e: any) {
-    this._updateDrawerState(e.target.opened);
   }
 }

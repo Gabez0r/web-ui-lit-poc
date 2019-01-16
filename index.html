@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>My app</title>
+    <title>Web UI LitElement POC</title>
     <meta name="generator" content="PWA Starter Kit" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="My App description" />
@@ -87,7 +87,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <!-- Performance tip: hint to the browser to start the handshake for the fonts site -->
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
-    <script>
+    <!-- <script>
       // Load and register pre-caching Service Worker
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
@@ -100,7 +100,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // Redux assumes `process.env.NODE_ENV` exists in the ES module build.
       // https://github.com/reactjs/redux/issues/2907
       window.process = { env: { NODE_ENV: 'production' } };
-    </script>
+    </script> -->
 
     <!-- Add any global styles for body, document, etc. -->
     <style>
@@ -118,14 +118,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         font-display: swap;
       }
       body {
-        margin-top: 60px;
         /* This is a font-stack that tries to use the system-default sans-serifs first */
         font-family: Helvetica, Arial, sans-serif, 'Apple Color Emoji',
           'Segoe UI Emoji', 'Segoe UI Symbol';
         color: #2c3e50;
         text-align: center;
         line-height: 1.5;
-        min-height: 100vh;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
