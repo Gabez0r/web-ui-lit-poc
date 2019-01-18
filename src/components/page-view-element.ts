@@ -12,10 +12,19 @@ import { LitElement, property } from 'lit-element';
 
 export class PageViewElement extends LitElement {
   @property({ type: Boolean })
-  public active: boolean = false;
+  public location?: { params: any; getUrl(params: any): string };
 
-  // Only render this page if it's actually visible.
-  protected shouldUpdate() {
-    return this.active;
+  public urlForLocation(name: string, value: any) {
+    if (this.location) {
+      return this.location.getUrl({ [name]: value })  ;
+    }
+  }
+
+  public pushUrlForLocation(name: string, value: any) {
+    const url = this.urlForLocation(name, value);
+    if (url) {
+      history.pushState(null, `${name}: ${value}`, decodeURIComponent(url));
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
   }
 }

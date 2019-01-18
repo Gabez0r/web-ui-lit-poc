@@ -56,5 +56,15 @@ export const SharedStyles = html`
       font-size: 30px;
       line-height: 64px;
     }
+
+    [main-title] {
+      font-family: 'Pacifico';
+      text-transform: lowercase;
+      font-size: 30px;
+      /* In the narrow layout, the toolbar is offset by the width of the
+        drawer button, and the text looks not centered. Add a padding to
+        match that button */
+      padding-right: 44px;
+    }
   </style>
 `;

@@ -10,10 +10,8 @@
 
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { customElement, html, LitElement, property } from 'lit-element';
-import { installMediaQueryWatcher } from 'pwa-helpers/media-query.js';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
-import { installRouter } from 'pwa-helpers/router.js';
 
 // These are the elements needed by this element.
 import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
@@ -25,10 +23,18 @@ import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { menuIcon } from './my-icons';
 import './snack-bar';
 
+// @ts-ignore
+import { Router } from '@vaadin/router';
+
+import '@nuxeo/nuxeo-elements/nuxeo-connection';
+
 @customElement('my-app')
 class MyApp extends LitElement {
   @property({ type: String })
   public appTitle: string = '';
+
+  @property({ type: String })
+  public baseUrl: string = '';
 
   @property({ type: String })
   protected _page: string = 'doc';
@@ -41,6 +47,9 @@ class MyApp extends LitElement {
 
   @property({ type: Boolean })
   protected _offline: boolean = false;
+
+  @property({ type: String })
+  protected _route: string = '';
 
   @property({ type: Object })
   private __snackbarTimer?: number;
@@ -94,33 +103,6 @@ class MyApp extends LitElement {
           background-color: var(--app-header-background-color);
         }
 
-        [main-title] {
-          font-family: 'Pacifico';
-          text-transform: lowercase;
-          font-size: 30px;
-          /* In the narrow layout, the toolbar is offset by the width of the
-        drawer button, and the text looks not centered. Add a padding to
-        match that button */
-          padding-right: 44px;
-        }
-
-        .toolbar-list {
-          display: none;
-        }
-
-        .toolbar-list > a {
-          display: inline-block;
-          color: var(--app-header-text-color);
-          text-decoration: none;
-          line-height: 30px;
-          padding: 4px 24px;
-        }
-
-        .toolbar-list > a[selected] {
-          color: var(--app-header-selected-color);
-          border-bottom: 4px solid var(--app-header-selected-color);
-        }
-
         .menu-btn {
           background: none;
           border: none;
@@ -128,6 +110,9 @@ class MyApp extends LitElement {
           cursor: pointer;
           height: 44px;
           width: 44px;
+          position: absolute;
+          top: 0;
+          left: 0;
         }
 
         .drawer-list {
@@ -157,60 +142,32 @@ class MyApp extends LitElement {
         }
 
         .main-content {
-          padding-top: 64px;
+          /* padding-top: 64px; */
           /* min-height: 100vh; */
         }
 
-        .page {
-          display: none;
-        }
-
-        .page[active] {
+        .main-content > * {
           display: block;
         }
       </style>
+
+      <nuxeo-connection url="${this.baseUrl}"></nuxeo-connection>
 
       <!-- Drawer content -->
       <app-drawer-layout>
         <app-drawer swipe-open slot="drawer">
           <nav class="drawer-list">
-            <a ?selected="${this._page === 'doc'}" href="/doc">Doc Browser</a>
             <a ?selected="${this._page === 'browse'}" href="/browse">Browse</a>
+            <a ?selected="${this._page === 'search'}" href="/search">Search</a>
           </nav>
         </app-drawer>
-
         <!-- Header -->
         <app-header-layout>
-          <app-header
-            condenses
-            reveals
-            shadow
-            effects="blend-background parallax-background waterfall"
-          >
-            <app-toolbar class="toolbar-top">
-              <button class="menu-btn" title="Menu" drawer-toggle>
-                ${menuIcon}
-              </button>
-              <div main-title>${this.appTitle}</div>
-            </app-toolbar>
-          </app-header>
-
           <!-- Main content -->
           <main role="main" class="main-content">
-            <doc-reader
-              class="page"
-              ?active="${this._page === 'doc'}"
-            ></doc-reader>
-            <poc-browser
-              class="page"
-              ?active="${this._page === 'browse'}"
-            ></poc-browser>
-            <my-view404
-              class="page"
-              ?active="${this._page === 'view404'}"
-            ></my-view404>
           </main>
         </app-header-layout>
+        <button class="menu-btn" title="Menu" drawer-toggle>${menuIcon}</button>
       </app-drawer-layout>
 
       <snack-bar ?active="${this._snackbarOpened}">
@@ -220,9 +177,32 @@ class MyApp extends LitElement {
   }
 
   protected firstUpdated() {
-    installRouter(() => this._locationChanged());
     installOfflineWatcher((offline) => this._offlineChanged(offline));
-    installMediaQueryWatcher(`(min-width: 460px)`, () => this._layoutChanged());
+    const content = this.shadowRoot && this.shadowRoot.querySelector('.main-content');
+    const router = new Router(content);
+    router.setRoutes([
+      { path: '/', redirect: '/doc' },
+      {
+        action: () => import(/* webpackChunkName: "browser" */ '../components/poc-browser')
+          .then(() => this._loadPage('browse')),
+        component: 'poc-browser',
+        name: 'browse',
+        path: '/browse:path(.*)',
+      },
+      {
+        action: () => import(/* webpackChunkName: "browser" */ '../components/poc-search')
+          .then(() => this._loadPage('search')),
+        component: 'poc-search',
+        name: 'search',
+        path: '/search',
+      },
+      {
+        action: () => import(/* webpackChunkName: "404" */ '../components/my-view404')
+          .then(() => this._loadPage('')),
+        component: 'my-view404',
+        path: '(.*)',
+      },
+    ]);
   }
 
   protected updated(changedProps: Map<string, object>) {
@@ -234,11 +214,6 @@ class MyApp extends LitElement {
         // This object also takes an image property, that points to an img src.
       });
     }
-  }
-
-  private _layoutChanged() {
-    // The drawer doesn't make sense in a wide layout, so if it's opened, close it.
-    // this._updateDrawerState(false);
   }
 
   private _offlineChanged(offline: boolean) {
@@ -256,25 +231,7 @@ class MyApp extends LitElement {
     }, 3000);
   }
 
-  private _locationChanged() {
-    const path = decodeURIComponent(window.location.pathname);
-    const page = path === '/' ? 'doc' : path.slice(1);
-    this._loadPage(page);
-  }
-
   private _loadPage(page: string) {
-    switch (page) {
-      case 'doc':
-        import(/* webpackChunkName: "doc-reader" */ '../components/doc-reader');
-        break;
-      case 'browse':
-        import(/* webpackChunkName: "poc-browser" */ '../components/poc-browser');
-        break;
-      default:
-        page = 'view404';
-        import(/* webpackChunkName: "view404" */ '../components/my-view404');
-    }
-
     this._page = page;
   }
 }
