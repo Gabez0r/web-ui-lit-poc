@@ -16,14 +16,14 @@ export class PageViewElement extends LitElement {
 
   public urlForLocation(name: string, value: any) {
     if (this.location) {
-      return this.location.getUrl({ [name]: value })  ;
+      return decodeURIComponent(this.location.getUrl({ [name]: value }));
     }
   }
 
-  public pushUrlForLocation(name: string, value: any) {
+  public navigateToLocation(name: string, value: any) {
     const url = this.urlForLocation(name, value);
     if (url) {
-      history.pushState(null, `${name}: ${value}`, decodeURIComponent(url));
+      history.pushState(null, `${name}: ${value}`, url);
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }

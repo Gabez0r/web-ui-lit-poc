@@ -20,6 +20,11 @@ class PocPage extends LitElement {
         .toolbar-top {
           background-color: var(--app-header-background-color);
         }
+
+        .toolbar-top > div {
+          position: relative;
+          width: 100%;
+        }
       </style>
       <app-header
         condenses

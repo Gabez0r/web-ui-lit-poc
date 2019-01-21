@@ -8,6 +8,8 @@
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
 
+// @ts-ignore
+import { RoutingBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { customElement, html, LitElement, property } from 'lit-element';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
@@ -86,17 +88,12 @@ class MyApp extends LitElement {
 
           /* -- Nuxeo Branding colors -- */
           --nuxeo-primary-color: #ccc;
+
+          height: 100%;
         }
 
         app-drawer-layout:not([narrow]) [drawer-toggle] {
           display: none;
-        }
-
-        app-header {
-          text-align: center;
-          background-color: var(--app-header-background-color);
-          color: var(--app-header-text-color);
-          border-bottom: 1px solid #eee;
         }
 
         .toolbar-top {
@@ -141,11 +138,6 @@ class MyApp extends LitElement {
           display: block;
         }
 
-        .main-content {
-          /* padding-top: 64px; */
-          /* min-height: 100vh; */
-        }
-
         .main-content > * {
           display: block;
         }
@@ -164,8 +156,7 @@ class MyApp extends LitElement {
         <!-- Header -->
         <app-header-layout>
           <!-- Main content -->
-          <main role="main" class="main-content">
-          </main>
+          <main role="main" class="main-content"></main>
         </app-header-layout>
         <button class="menu-btn" title="Menu" drawer-toggle>${menuIcon}</button>
       </app-drawer-layout>
@@ -178,31 +169,47 @@ class MyApp extends LitElement {
 
   protected firstUpdated() {
     installOfflineWatcher((offline) => this._offlineChanged(offline));
-    const content = this.shadowRoot && this.shadowRoot.querySelector('.main-content');
-    const router = new Router(content);
+    const content =
+      this.shadowRoot && this.shadowRoot.querySelector('.main-content');
+    const router = new Router(content, { baseUrl: '/' });
     router.setRoutes([
       { path: '/', redirect: '/doc' },
       {
-        action: () => import(/* webpackChunkName: "browser" */ '../components/poc-browser')
-          .then(() => this._loadPage('browse')),
+        action: () =>
+          import(/* webpackChunkName: "browser" */ '../components/poc-browser').then(
+            () => this._loadPage('browse'),
+          ),
         component: 'poc-browser',
         name: 'browse',
         path: '/browse:path(.*)',
       },
       {
-        action: () => import(/* webpackChunkName: "browser" */ '../components/poc-search')
-          .then(() => this._loadPage('search')),
+        action: () =>
+          import(/* webpackChunkName: "browser" */ '../components/poc-search').then(
+            () => this._loadPage('search'),
+          ),
         component: 'poc-search',
         name: 'search',
         path: '/search',
       },
       {
-        action: () => import(/* webpackChunkName: "404" */ '../components/my-view404')
-          .then(() => this._loadPage('')),
+        action: () =>
+          import(/* webpackChunkName: "404" */ '../components/my-view404').then(
+            () => this._loadPage(''),
+          ),
         component: 'my-view404',
         path: '(.*)',
       },
     ]);
+
+    // define legacy router for elements using `nuxeo-router-behavior`
+    RoutingBehavior.__router = {
+      baseUrl: '/',
+      useHashbang: false,
+      browse(path: string) {
+        return decodeURIComponent(router.urlForName('browse', { path })).replace(/^\//, '');
+      },
+    };
   }
 
   protected updated(changedProps: Map<string, object>) {

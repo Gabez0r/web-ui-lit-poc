@@ -3,6 +3,7 @@ import { PageViewElement } from './page-view-element';
 
 import '@nuxeo/nuxeo-elements/nuxeo-document';
 import '@nuxeo/nuxeo-elements/nuxeo-page-provider';
+import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-document-suggestion';
 
 import './nuxeo-documents-table';
 import './poc-page';
@@ -20,6 +21,9 @@ class PocBrowser extends PageViewElement {
   @property({ type: Array })
   protected _children: Nuxeo.Document[] = [];
 
+  @property({ type: Boolean })
+  protected _isQuickSearching: boolean = false;
+
   @query('#pp')
   protected _pp?: Nuxeo.PageProvider;
 
@@ -29,6 +33,25 @@ class PocBrowser extends PageViewElement {
       <style>
         .content {
           margin-top: 8px;
+        }
+        .header {
+          display: flex;
+          flex-direction: row;
+          flex: 1 1 0.000000001px;
+        }
+        .path {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .search-btn {
+          background: none;
+          border: none;
+          fill: var(--app-header-text-color);
+          cursor: pointer;
+          position: absolute;
+          top: 0;
+          right: 0;
         }
       </style>
 
@@ -53,20 +76,52 @@ class PocBrowser extends PageViewElement {
       </nuxeo-page-provider>
 
       <poc-page>
-        <div slot="header" main-title>
-          ${this.document && this.document.path}
+        <div slot="header" class="header">
+          <span class="path">${this.document && this.document.path}</span>
         </div>
         <div class="content">
           <nuxeo-documents-table
+            class="results"
             .documents="${this._children}"
             @row-clicked="${
               (e: CustomEvent) => {
                 if (e.detail.item) {
-                  this.pushUrlForLocation('path', this.document && e.detail.item.path);
+                  this.navigateToLocation(
+                    'path',
+                    this.document && e.detail.item.path,
+                  );
                 }
               }
             }"
           ></nuxeo-documents-table>
+          <div>
+            ${
+              this._isQuickSearching
+                ? html`
+                    <nuxeo-document-suggestion
+                      placeholder="Search here for a document"
+                      @selected-item-changed="${
+                        (e: CustomEvent) => {
+                          this.navigateToLocation('path', e.detail.value.path);
+                          this._isQuickSearching = false;
+                        }
+                      }"
+                    ></nuxeo-document-suggestion>
+                  `
+                : ``
+            }
+            ${
+              !this._isQuickSearching
+                ? html`
+                    <a
+                      href="javascript:undefined"
+                      @click="${() => (this._isQuickSearching = true)}"
+                      >Didn't find whay you were looking for?</a
+                    >
+                  `
+                : ''
+            }
+          </div>
         </div>
       </poc-page>
     `;

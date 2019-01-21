@@ -38,6 +38,13 @@ export const SharedStyles = html`
       color: var(--app-dark-text-color);
     }
 
+    app-header {
+      text-align: center;
+      background-color: var(--app-header-background-color);
+      color: var(--app-header-text-color);
+      border-bottom: 1px solid #eee;
+    }
+
     @media (min-width: 460px) {
       h2 {
         font-size: 36px;
