@@ -1,6 +1,6 @@
 # Web UI POC using LitElement
 
-This is a proof of concept implementation of [Nuxeo Web UI](https://github.com/nuxeo/nuxeo-web-ui) using [LitElement](https://github.com/Polymer/lit-element), focused on navivation and search.
+This is a proof of concept implementation of [Nuxeo Web UI](https://github.com/nuxeo/nuxeo-web-ui) using [LitElement](https://github.com/Polymer/lit-element), focused on navigation and search.
 
 Based on [nuxeo-elements-tutorial-lit](https://github.com/nelsonsilva/nuxeo-elements-tutorial-lit).
 

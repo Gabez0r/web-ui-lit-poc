@@ -116,7 +116,7 @@ class PocBrowser extends PageViewElement {
                     <a
                       href="javascript:undefined"
                       @click="${() => (this._isQuickSearching = true)}"
-                      >Didn't find whay you were looking for?</a
+                      >Didn't find what you were looking for?</a
                     >
                   `
                 : ''
