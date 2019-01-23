@@ -7,12 +7,32 @@
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
-
-import { RoutingBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { customElement, html, LitElement, property } from 'lit-element';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
+
+import {
+  ITranslationConfig,
+  Key,
+  LanguageIdentifier,
+  registerTranslateConfig,
+  Strings,
+  use,
+} from '@appnest/lit-translate';
+
+// setup localization
+registerTranslateConfig({
+  loader: (lang: LanguageIdentifier) =>
+    fetch(`/i18n/messages${lang && lang !== 'en' ? `-${lang}` : ''}.json`).then(
+      (res) => res.json(),
+    ),
+  lookup: (key: Key, config: ITranslationConfig) => {
+    // add a custom lookup function because the default splits keys by `.`
+    const translations: Strings | null = config.strings;
+    return translations && translations[key].toString();
+  },
+});
 
 // These are the elements needed by this element.
 import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
@@ -28,6 +48,7 @@ import './snack-bar';
 import { Router } from '@vaadin/router';
 
 import '@nuxeo/nuxeo-elements/nuxeo-connection';
+import { RoutingBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js';
 
 @customElement('my-app')
 class MyApp extends LitElement {
@@ -168,6 +189,8 @@ class MyApp extends LitElement {
 
   protected firstUpdated() {
     installOfflineWatcher((offline) => this._offlineChanged(offline));
+
+    // setup routing
     const content =
       this.shadowRoot && this.shadowRoot.querySelector('.main-content');
     const router = new Router(content, { baseUrl: '/' });
@@ -206,9 +229,13 @@ class MyApp extends LitElement {
       baseUrl: '/',
       useHashbang: false,
       browse(path: string) {
-        return decodeURIComponent(router.urlForName('browse', { path })).replace(/^\//, '');
+        return decodeURIComponent(
+          router.urlForName('browse', { path }),
+        ).replace(/^\//, '');
       },
     };
+
+    use(navigator.language || 'en');
   }
 
   protected updated(changedProps: Map<string, object>) {

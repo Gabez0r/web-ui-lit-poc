@@ -5,6 +5,8 @@ import '@nuxeo/nuxeo-elements/nuxeo-document';
 import '@nuxeo/nuxeo-elements/nuxeo-page-provider';
 import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-document-suggestion';
 
+import { get, translate } from '@appnest/lit-translate';
+
 import './nuxeo-documents-table';
 import './poc-page';
 
@@ -99,7 +101,9 @@ class PocBrowser extends PageViewElement {
               this._isQuickSearching
                 ? html`
                     <nuxeo-document-suggestion
-                      placeholder="Search here for a document"
+                      placeholder="${
+                        translate('poc.browser.quickSearch.placeholder')
+                      }"
                       @selected-item-changed="${
                         (e: CustomEvent) => {
                           this.navigateToLocation('path', e.detail.value.path);
@@ -116,7 +120,7 @@ class PocBrowser extends PageViewElement {
                     <a
                       href="javascript:undefined"
                       @click="${() => (this._isQuickSearching = true)}"
-                      >Didn't find what you were looking for?</a
+                      >${translate('poc.browser.quickSearch.trigger')}</a
                     >
                   `
                 : ''

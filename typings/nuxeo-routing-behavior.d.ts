@@ -14,7 +14,7 @@
 /**
  * `Nuxeo.RoutingBehavior` provides a `urlFor` helper function for reverse routing.
  */
-declare module "@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js" {
+declare module '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js' {
   interface RoutingBehavior {
     __router: object | null | undefined;
     router: object | null | undefined;
