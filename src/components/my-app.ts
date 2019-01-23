@@ -24,8 +24,9 @@ import {
 // setup localization
 registerTranslateConfig({
   loader: (lang: LanguageIdentifier) =>
-    fetch(`/i18n/messages${lang && lang !== 'en' ? `-${lang}` : ''}.json`).then(
-      (res) => res.json(),
+    import(/* webpackChunkName: "i18n/[request]" */
+      `../i18n/messages${lang && lang !== 'en' ? `-${lang}` : ''}.json`).then(
+      (res) => res,
     ),
   lookup: (key: Key, config: ITranslationConfig) => {
     // add a custom lookup function because the default splits keys by `.`
@@ -207,7 +208,7 @@ class MyApp extends LitElement {
       },
       {
         action: () =>
-          import(/* webpackChunkName: "browser" */ '../components/poc-search').then(
+          import(/* webpackChunkName: "search" */ '../components/poc-search').then(
             () => this._loadPage('search'),
           ),
         component: 'poc-search',
