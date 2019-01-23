@@ -12,7 +12,24 @@ import { customElement, html, LitElement, property } from 'lit-element';
 import { updateMetadata } from 'pwa-helpers/metadata.js';
 import { installOfflineWatcher } from 'pwa-helpers/network.js';
 
+// These are the elements needed by this element.
+import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
+import '@polymer/app-layout/app-drawer/app-drawer.js';
+import '@polymer/app-layout/app-header-layout/app-header-layout.js';
+import '@polymer/app-layout/app-header/app-header.js';
+import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
+import { menuIcon } from './my-icons';
+import './snack-bar';
+
+// @ts-ignore
+import { Router } from '@vaadin/router';
+
+import '@nuxeo/nuxeo-elements/nuxeo-connection';
+import { RoutingBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js';
+
 import {
+  get,
   ITranslationConfig,
   Key,
   LanguageIdentifier,
@@ -35,21 +52,10 @@ registerTranslateConfig({
   },
 });
 
-// These are the elements needed by this element.
-import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
-import '@polymer/app-layout/app-drawer/app-drawer.js';
-import '@polymer/app-layout/app-header-layout/app-header-layout.js';
-import '@polymer/app-layout/app-header/app-header.js';
-import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
-import '@polymer/app-layout/app-toolbar/app-toolbar.js';
-import { menuIcon } from './my-icons';
-import './snack-bar';
-
-// @ts-ignore
-import { Router } from '@vaadin/router';
-
-import '@nuxeo/nuxeo-elements/nuxeo-connection';
-import { RoutingBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js';
+// setup window object
+const myWindow = window as any;
+myWindow.nuxeo = myWindow.nuxeo || {};
+myWindow.nuxeo.I18n = myWindow.nuxeo.I18n || {};
 
 @customElement('my-app')
 class MyApp extends LitElement {
@@ -236,7 +242,7 @@ class MyApp extends LitElement {
       },
     };
 
-    use(navigator.language || 'en');
+    this._loadLang(navigator.language || 'en');
   }
 
   protected updated(changedProps: Map<string, object>) {
@@ -248,6 +254,16 @@ class MyApp extends LitElement {
         // This object also takes an image property, that points to an img src.
       });
     }
+  }
+
+  private _loadLang(lang: string) {
+    use(navigator.language || 'en').then(() => {
+      const mustUpdate = !!myWindow.nuxeo.I18n.translate;
+      myWindow.nuxeo.I18n.translate = (key: string) => get(key);
+      if (mustUpdate) {
+        document.dispatchEvent(new Event('i18n-locale-loaded'));
+      }
+    });
   }
 
   private _offlineChanged(offline: boolean) {
