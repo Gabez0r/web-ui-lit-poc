@@ -3,6 +3,7 @@ import { PageViewElement } from './page-view-element';
 
 import '@nuxeo/nuxeo-elements/nuxeo-document';
 import '@nuxeo/nuxeo-elements/nuxeo-page-provider';
+import '@nuxeo/nuxeo-ui-elements/actions/nuxeo-favorites-toggle-button';
 import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-document-suggestion';
 
 import { translate } from '@appnest/lit-translate';
@@ -16,6 +17,9 @@ import { SharedStyles } from './shared-styles';
 class PocBrowser extends PageViewElement {
   @property({ type: String })
   public path: string = '';
+
+  @property({ type: Object })
+  public enrichers = { document: ['favorites'] };
 
   @property({ type: Object })
   protected document?: Nuxeo.Document;
@@ -40,6 +44,7 @@ class PocBrowser extends PageViewElement {
           display: flex;
           flex-direction: row;
           flex: 1 1 0.000000001px;
+          align-items: center;
         }
         .path {
           margin-left: 8px;
@@ -61,20 +66,18 @@ class PocBrowser extends PageViewElement {
       <nuxeo-document
         auto
         doc-path="${this.path}"
-        @response-changed="${
-          (e: CustomEvent) => {
-            this.document = e.detail.value;
-          }
-        }"
+        .enrichers="${this.enrichers}"
+        @response-changed="${(e: CustomEvent) => {
+          this.document = e.detail.value;
+        }}"
       ></nuxeo-document>
 
       <nuxeo-page-provider
         id="pp"
         provider="advanced_document_content"
         enrichers="thumbnail"
-        @current-page-changed="${
-          (e: CustomEvent) => (this._children = e.detail.value)
-        }"
+        @current-page-changed="${(e: CustomEvent) =>
+          (this._children = e.detail.value)}"
       >
       </nuxeo-page-provider>
 
@@ -82,51 +85,46 @@ class PocBrowser extends PageViewElement {
         <div slot="header" class="header">
           <span>${translate('app.menu.browse')}:</span>
           <span class="path">${this.document && this.document.path}</span>
+          <nuxeo-favorites-toggle-button
+            .document="${this.document}"
+          ></nuxeo-favorites-toggle-button>
         </div>
         <div class="content">
           <nuxeo-documents-table
             class="results"
             .documents="${this._children}"
-            @row-clicked="${
-              (e: CustomEvent) => {
-                if (e.detail.item) {
-                  this.navigateToLocation(
-                    'path',
-                    this.document && e.detail.item.path,
-                  );
-                }
+            @row-clicked="${(e: CustomEvent) => {
+              if (e.detail.item) {
+                this.navigateToLocation(
+                  'path',
+                  this.document && e.detail.item.path,
+                );
               }
-            }"
+            }}"
           ></nuxeo-documents-table>
           <div>
-            ${
-              this._isQuickSearching
-                ? html`
-                    <nuxeo-document-suggestion
-                      placeholder="${
-                        translate('poc.browser.quickSearch.placeholder')
-                      }"
-                      @selected-item-changed="${
-                        (e: CustomEvent) => {
-                          this.navigateToLocation('path', e.detail.value.path);
-                          this._isQuickSearching = false;
-                        }
-                      }"
-                    ></nuxeo-document-suggestion>
-                  `
-                : ``
-            }
-            ${
-              !this._isQuickSearching
-                ? html`
-                    <a
-                      href="javascript:undefined"
-                      @click="${() => (this._isQuickSearching = true)}"
-                      >${translate('poc.browser.quickSearch.trigger')}</a
-                    >
-                  `
-                : ''
-            }
+            ${this._isQuickSearching
+              ? html`
+                  <nuxeo-document-suggestion
+                    placeholder="${translate(
+                      'poc.browser.quickSearch.placeholder',
+                    )}"
+                    @selected-item-changed="${(e: CustomEvent) => {
+                      this.navigateToLocation('path', e.detail.value.path);
+                      this._isQuickSearching = false;
+                    }}"
+                  ></nuxeo-document-suggestion>
+                `
+              : ``}
+            ${!this._isQuickSearching
+              ? html`
+                  <a
+                    href="javascript:undefined"
+                    @click="${() => (this._isQuickSearching = true)}"
+                    >${translate('poc.browser.quickSearch.trigger')}</a
+                  >
+                `
+              : ''}
           </div>
         </div>
       </poc-page>

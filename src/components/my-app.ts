@@ -120,6 +120,8 @@ class MyApp extends LitElement {
           /* -- Nuxeo Branding colors -- */
           --nuxeo-primary-color: #ccc;
 
+          --icon-toggle-pressed-color: var(--app-primary-color);
+
           height: 100%;
         }
 
@@ -139,8 +141,12 @@ class MyApp extends LitElement {
           height: 44px;
           width: 44px;
           position: absolute;
-          top: 0;
+          top: 8px;
           left: 0;
+        }
+
+        .menu-btn > * {
+          pointer-events: none;
         }
 
         .drawer-list {
