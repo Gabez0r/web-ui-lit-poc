@@ -65,7 +65,9 @@ const development = merge([
       host: '0.0.0.0',
       historyApiFallback: true,
       proxy: {
-        '/nuxeo': 'http://localhost:8080/nuxeo'
+        '/nuxeo': {
+          target: 'http://localhost:8080/',
+        }
       }
     }
   }
