@@ -5,7 +5,7 @@ import '@nuxeo/nuxeo-elements/nuxeo-document';
 import '@nuxeo/nuxeo-elements/nuxeo-page-provider';
 import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-document-suggestion';
 
-import { get, translate } from '@appnest/lit-translate';
+import { translate } from '@appnest/lit-translate';
 
 import './nuxeo-documents-table';
 import './poc-page';
@@ -42,6 +42,7 @@ class PocBrowser extends PageViewElement {
           flex: 1 1 0.000000001px;
         }
         .path {
+          margin-left: 8px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -79,6 +80,7 @@ class PocBrowser extends PageViewElement {
 
       <poc-page>
         <div slot="header" class="header">
+          <span>${translate('app.menu.browse')}:</span>
           <span class="path">${this.document && this.document.path}</span>
         </div>
         <div class="content">

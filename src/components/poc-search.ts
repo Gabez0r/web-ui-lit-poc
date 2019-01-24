@@ -1,3 +1,4 @@
+import { translate } from '@appnest/lit-translate';
 import { customElement, html, property, query } from 'lit-element';
 import { PageViewElement } from './page-view-element';
 import './poc-page';
@@ -10,7 +11,7 @@ class PocBrowser extends PageViewElement {
     return html`
       ${SharedStyles}
       <poc-page>
-        <div slot="header" main-title>Search</div>
+        <div slot="header" main-title>${translate('app.menu.search')}</div>
         <div class="content">TODO</div>
       </poc-page>
     `;

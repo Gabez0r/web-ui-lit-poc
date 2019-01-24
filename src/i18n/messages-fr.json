@@ -1,4 +1,19 @@
 {
+  "app.menu.browse": "Parcourir",
+  "app.menu.search": "Recherche",
+  "command.add": "Ajouter",
+  "command.cancel": "Annuler",
+  "command.ok": "Ok",
+  "documentsTable.empty": "Aucun résultat",
+  "documentsTable.filtering.empty": "Aucun résultat pour ce critère de recherche",
+  "documentsTable.icon": "Icône",
+  "documentsTable.lastModified": "Modifié",
+  "documentsTable.title": "Titre",
+  "favoritesToggleButton.tooltip.add": "Ajouter aux favoris",
+  "favoritesToggleButton.tooltip.remove": "Enlever des favoris",
   "poc.browser.quickSearch.placeholder": "Rechercher un document",
-  "poc.browser.quickSearch.trigger": "Vous n'avez pas trouvé ce que vous cherchiez?"
+  "poc.browser.quickSearch.trigger": "Vous n'avez pas trouvé ce que vous cherchiez?",
+  "tableSettings.columnSettings": "Colonnes",
+  "tableSettings.columnSettings.close": "Fermer",
+  "tableSettings.columnSettings.reset": "Réinitialiser"
 }

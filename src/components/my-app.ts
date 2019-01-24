@@ -7,11 +7,8 @@
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
-import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
-import { customElement, html, LitElement, property } from 'lit-element';
-import { updateMetadata } from 'pwa-helpers/metadata.js';
-import { installOfflineWatcher } from 'pwa-helpers/network.js';
-
+import '@nuxeo/nuxeo-elements/nuxeo-connection';
+import { RoutingBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js';
 // These are the elements needed by this element.
 import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
 import '@polymer/app-layout/app-drawer/app-drawer.js';
@@ -19,14 +16,15 @@ import '@polymer/app-layout/app-header-layout/app-header-layout.js';
 import '@polymer/app-layout/app-header/app-header.js';
 import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
-import { menuIcon } from './my-icons';
-import './snack-bar';
-
+import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 // @ts-ignore
 import { Router } from '@vaadin/router';
-
-import '@nuxeo/nuxeo-elements/nuxeo-connection';
-import { RoutingBehavior } from '@nuxeo/nuxeo-ui-elements/nuxeo-routing-behavior.js';
+import { customElement, html, LitElement, property } from 'lit-element';
+import { repeat } from 'lit-html/directives/repeat';
+import { updateMetadata } from 'pwa-helpers/metadata.js';
+import { installOfflineWatcher } from 'pwa-helpers/network.js';
+import { menuIcon } from './my-icons';
+import './snack-bar';
 
 import {
   get,
@@ -35,6 +33,7 @@ import {
   LanguageIdentifier,
   registerTranslateConfig,
   Strings,
+  translate,
   use,
 } from '@appnest/lit-translate';
 
@@ -42,7 +41,7 @@ import {
 registerTranslateConfig({
   loader: (lang: LanguageIdentifier) =>
     import(/* webpackChunkName: "i18n/[request]" */
-      `../i18n/messages${lang && lang !== 'en' ? `-${lang}` : ''}.json`).then(
+    `../i18n/messages${lang && lang !== 'en' ? `-${lang}` : ''}.json`).then(
       (res) => res,
     ),
   lookup: (key: Key, config: ITranslationConfig) => {
@@ -56,6 +55,8 @@ registerTranslateConfig({
 const myWindow = window as any;
 myWindow.nuxeo = myWindow.nuxeo || {};
 myWindow.nuxeo.I18n = myWindow.nuxeo.I18n || {};
+
+const supportedLanguages = ['en', 'fr', 'pt-PT'];
 
 @customElement('my-app')
 class MyApp extends LitElement {
@@ -79,6 +80,9 @@ class MyApp extends LitElement {
 
   @property({ type: String })
   protected _route: string = '';
+
+  @property({ type: String })
+  protected _language: string = '';
 
   @property({ type: Object })
   private __snackbarTimer?: number;
@@ -140,6 +144,9 @@ class MyApp extends LitElement {
         }
 
         .drawer-list {
+          display: flex;
+          flex-direction: column;
+          flex: 1 1 auto;
           box-sizing: border-box;
           width: 100%;
           height: 100%;
@@ -160,12 +167,24 @@ class MyApp extends LitElement {
           color: var(--app-drawer-selected-color);
         }
 
-        /* Workaround for IE11 displaying <main> as inline */
-        main {
+        .main-content > * {
           display: block;
         }
 
-        .main-content > * {
+        .drawer-list-footer {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-end;
+          flex: 1 1 auto;
+        }
+
+        .lang-select {
+          width: 100%;
+          color: var(--app-drawer-selected-color);
+        }
+
+        /* Workaround for IE11 displaying <main> as inline */
+        main {
           display: block;
         }
       </style>
@@ -176,8 +195,30 @@ class MyApp extends LitElement {
       <app-drawer-layout>
         <app-drawer swipe-open slot="drawer">
           <nav class="drawer-list">
-            <a ?selected="${this._page === 'browse'}" href="/browse">Browse</a>
-            <a ?selected="${this._page === 'search'}" href="/search">Search</a>
+            <a ?selected="${this._page === 'browse'}" href="/browse"
+              >${translate('app.menu.browse')}</a
+            >
+            <a ?selected="${this._page === 'search'}" href="/search"
+              >${translate('app.menu.search')}</a
+            >
+            <div class="drawer-list-footer">
+              <div class="lang-select">
+                <span>Language:</span>
+                <select
+                  id="langSelect"
+                  value="${this._language}"
+                  @change="${async (e: Event) =>
+                    this._loadLang(this._getSelectedLang())}"
+                >
+                  ${repeat(
+                    supportedLanguages,
+                    (lang) => html`
+                      <option value="${lang}">${lang}</option>
+                    `,
+                  )}
+                </select>
+              </div>
+            </div>
           </nav>
         </app-drawer>
         <!-- Header -->
@@ -242,7 +283,7 @@ class MyApp extends LitElement {
       },
     };
 
-    this._loadLang(navigator.language || 'en');
+    this._loadLang(this._getSelectedLang());
   }
 
   protected updated(changedProps: Map<string, object>) {
@@ -256,14 +297,20 @@ class MyApp extends LitElement {
     }
   }
 
-  private _loadLang(lang: string) {
-    use(navigator.language || 'en').then(() => {
+  private async _loadLang(lang: string) {
+    use(lang).then(() => {
       const mustUpdate = !!myWindow.nuxeo.I18n.translate;
       myWindow.nuxeo.I18n.translate = (key: string) => get(key);
       if (mustUpdate) {
         document.dispatchEvent(new Event('i18n-locale-loaded'));
       }
     });
+  }
+
+  private _getSelectedLang() {
+    const select: HTMLSelectElement | null =
+      this.shadowRoot && this.shadowRoot.querySelector('#langSelect');
+    return (select && select.selectedOptions[0].value) || 'en';
   }
 
   private _offlineChanged(offline: boolean) {
