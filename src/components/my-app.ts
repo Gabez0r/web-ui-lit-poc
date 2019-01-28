@@ -17,6 +17,8 @@ import '@polymer/app-layout/app-header/app-header.js';
 import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
 import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
+import { Polymer } from '@polymer/polymer/polymer-legacy.js';
+(window as any).Polymer = Polymer;
 // @ts-ignore
 import { Router } from '@vaadin/router';
 import { customElement, html, LitElement, property } from 'lit-element';

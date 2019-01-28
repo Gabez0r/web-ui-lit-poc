@@ -7,31 +7,29 @@ import '@nuxeo/nuxeo-ui-elements/actions/nuxeo-favorites-toggle-button';
 import '@nuxeo/nuxeo-ui-elements/widgets/nuxeo-document-suggestion';
 
 import { translate } from '@appnest/lit-translate';
-
-import './nuxeo-documents-table';
+import './poc-document-content';
+import './poc-document-layout';
+import './poc-document-viewer';
 import './poc-page';
+
+import '@polymer/marked-element/marked-element.js';
+import 'cropperjs/dist/cropper.js';
 
 import { SharedStyles } from './shared-styles';
 
 @customElement('poc-browser')
-class PocBrowser extends PageViewElement {
+class Browser extends PageViewElement {
   @property({ type: String })
   public path: string = '';
 
   @property({ type: Object })
-  public enrichers = { document: ['favorites'] };
+  public enrichers = { document: ['favorites', 'preview'] };
 
   @property({ type: Object })
   protected document?: Nuxeo.Document;
 
-  @property({ type: Array })
-  protected _children: Nuxeo.Document[] = [];
-
   @property({ type: Boolean })
   protected _isQuickSearching: boolean = false;
-
-  @query('#pp')
-  protected _pp?: Nuxeo.PageProvider;
 
   protected render() {
     return html`
@@ -52,14 +50,8 @@ class PocBrowser extends PageViewElement {
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        .search-btn {
-          background: none;
-          border: none;
-          fill: var(--app-header-text-color);
-          cursor: pointer;
-          position: absolute;
-          top: 0;
-          right: 0;
+        .quick-search {
+          text-align: center;
         }
       </style>
 
@@ -67,19 +59,9 @@ class PocBrowser extends PageViewElement {
         auto
         doc-path="${this.path}"
         .enrichers="${this.enrichers}"
-        @response-changed="${(e: CustomEvent) => {
-          this.document = e.detail.value;
-        }}"
+        @response-changed="${(e: CustomEvent) =>
+          e.detail.value && (this.document = e.detail.value)}"
       ></nuxeo-document>
-
-      <nuxeo-page-provider
-        id="pp"
-        provider="advanced_document_content"
-        enrichers="thumbnail"
-        @current-page-changed="${(e: CustomEvent) =>
-          (this._children = e.detail.value)}"
-      >
-      </nuxeo-page-provider>
 
       <poc-page>
         <div slot="header" class="header">
@@ -90,9 +72,9 @@ class PocBrowser extends PageViewElement {
           ></nuxeo-favorites-toggle-button>
         </div>
         <div class="content">
-          <nuxeo-documents-table
-            class="results"
-            .documents="${this._children}"
+          <poc-document-layout
+            .document="${this.document}"
+            layout="view"
             @row-clicked="${(e: CustomEvent) => {
               if (e.detail.item) {
                 this.navigateToLocation(
@@ -101,8 +83,8 @@ class PocBrowser extends PageViewElement {
                 );
               }
             }}"
-          ></nuxeo-documents-table>
-          <div>
+          ></poc-document-layout>
+          <div class="quick-search">
             ${this._isQuickSearching
               ? html`
                   <nuxeo-document-suggestion
@@ -137,14 +119,6 @@ class PocBrowser extends PageViewElement {
         this.path = this.location.params.path;
       } else if (!this.path) {
         this.path = '/';
-      }
-    }
-    if (changedProperties.has('document')) {
-      if (this._pp && this.document) {
-        this._pp.params = this.document
-          ? { ecm_parentId: this.document.uid, ecm_trashed: false }
-          : {};
-        this._pp.fetch();
       }
     }
   }
