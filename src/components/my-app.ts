@@ -47,7 +47,9 @@ registerTranslateConfig({
   lookup: (key: Key, config: ITranslationConfig) => {
     // add a custom lookup function because the default splits keys by `.`
     const translations: Strings | null = config.strings;
-    return translations && translations[key].toString();
+    return (
+      translations && (translations[key] ? translations[key].toString() : key)
+    );
   },
 });
 
