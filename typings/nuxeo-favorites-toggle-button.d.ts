@@ -5,5 +5,5 @@ declare namespace Nuxeo {
 }
 
 interface HTMLElementTagNameMap {
-  'nuxeo-favorites-toggle-button.d': Nuxeo.FavoritesToggleButton;
+  'nuxeo-favorites-toggle-button': Nuxeo.FavoritesToggleButton;
 }

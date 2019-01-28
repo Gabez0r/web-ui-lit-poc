@@ -6,7 +6,7 @@ import { menuIcon } from './my-icons';
 import { PageViewElement } from './page-view-element';
 
 @customElement('poc-page')
-class PocPage extends LitElement {
+class Page extends LitElement {
   protected render() {
     return html`
       <style>
@@ -26,6 +26,10 @@ class PocPage extends LitElement {
           position: relative;
           width: 100%;
         }
+
+        #page-content {
+          margin: 16px;
+        }
       </style>
       <app-header
         condenses
@@ -34,12 +38,10 @@ class PocPage extends LitElement {
         effects="blend-background parallax-background waterfall"
       >
         <app-toolbar class="toolbar-top">
-          <div part="page-header">
-            <slot name="header"></slot>
-          </div>
+          <slot name="header"></slot>
         </app-toolbar>
       </app-header>
-      <div part="page-content"><slot></slot></div>
+      <div id="page-content"><slot></slot></div>
     `;
   }
 }

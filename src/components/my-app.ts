@@ -159,6 +159,7 @@ class MyApp extends LitElement {
           padding: 24px;
           background: var(--app-drawer-background-color);
           position: relative;
+          text-align: center;
         }
 
         .drawer-list > a {
