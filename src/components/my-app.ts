@@ -127,6 +127,7 @@ class MyApp extends LitElement {
           --icon-toggle-pressed-color: var(--app-primary-color);
 
           height: 100%;
+          overflow: hidden;
         }
 
         app-drawer-layout:not([narrow]) [drawer-toggle] {
@@ -254,7 +255,7 @@ class MyApp extends LitElement {
       this.shadowRoot && this.shadowRoot.querySelector('.main-content');
     const router = new Router(content, { baseUrl: '/' });
     router.setRoutes([
-      { path: '/', redirect: '/doc' },
+      { path: '/', redirect: '/browse' },
       {
         action: () =>
           import(/* webpackChunkName: "browser" */ '../components/poc-browser').then(

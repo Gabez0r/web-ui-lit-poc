@@ -51,6 +51,7 @@ class Browser extends PageViewElement {
           text-overflow: ellipsis;
         }
         .quick-search {
+          margin-top: 16px;
           text-align: center;
         }
       </style>
