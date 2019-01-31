@@ -127,7 +127,7 @@ class MyApp extends LitElement {
           --icon-toggle-pressed-color: var(--app-primary-color);
 
           height: 100%;
-          overflow: hidden;
+          /* overflow: hidden; */
         }
 
         app-drawer-layout:not([narrow]) [drawer-toggle] {
@@ -208,11 +208,14 @@ class MyApp extends LitElement {
         <app-drawer swipe-open slot="drawer">
           <nav class="drawer-list">
             <a ?selected="${this._page === 'browse'}" href="/browse"
-              >${translate('app.menu.browse')}</a
-            >
+              >${translate('app.menu.browse')}
+            </a>
             <a ?selected="${this._page === 'search'}" href="/search"
-              >${translate('app.menu.search')}</a
-            >
+              >${translate('app.menu.search')}
+            </a>
+            <a ?selected="${this._page === 'layout-test'}" href="/layout-test"
+              >${translate('app.menu.layout-test')}
+            </a>
             <div class="drawer-list-footer">
               <div class="lang-select">
                 <span>Language:</span>
@@ -273,6 +276,15 @@ class MyApp extends LitElement {
         component: 'poc-search',
         name: 'search',
         path: '/search',
+      },
+      {
+        action: () =>
+          import(/* webpackChunkName: "layout-test" */ '../components/poc-layout-test').then(
+            () => this._loadPage('layout-test'),
+          ),
+        component: 'poc-layout-test',
+        name: 'layout-test',
+        path: '/layout-test',
       },
       {
         action: () =>

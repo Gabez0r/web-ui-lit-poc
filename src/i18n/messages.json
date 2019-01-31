@@ -1,5 +1,6 @@
 {
   "app.menu.browse": "Browse",
+  "app.menu.layout-test": "Layout Test",
   "app.menu.search": "Search",
   "command.add": "Add",
   "command.cancel": "Cancel",
