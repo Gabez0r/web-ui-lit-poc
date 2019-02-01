@@ -218,7 +218,7 @@ class MyApp extends LitElement {
             </a>
             <div class="drawer-list-footer">
               <div class="lang-select">
-                <span>Language:</span>
+                <span>${translate('app.language')}</span>
                 <select
                   id="langSelect"
                   value="${this._language}"

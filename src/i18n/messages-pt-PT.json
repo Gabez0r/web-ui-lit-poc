@@ -1,4 +1,7 @@
 {
+  "app.language": "Língua",
+  "app.layout-test.header": "Layouts Gerados em Tempo de Execução",
+  "app.layout-test.model": "Modelo",
   "app.menu.browse": "Navegar",
   "app.menu.layout-test": "Teste de Layout",
   "app.menu.search": "Pesquisa",

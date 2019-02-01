@@ -20,6 +20,7 @@ class Page extends LitElement {
         .toolbar-top {
           background-color: var(--app-header-background-color);
           margin-left: 32px;
+          text-align: left;
         }
 
         .toolbar-top > div {

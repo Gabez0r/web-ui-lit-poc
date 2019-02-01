@@ -1,5 +1,6 @@
 import { translate } from '@appnest/lit-translate';
 import { customElement, html, LitElement, property } from 'lit-element';
+import { repeat } from 'lit-html/directives/repeat';
 import './poc-page';
 
 import { LayoutStyles } from './poc-layout-test-styles';
@@ -9,9 +10,9 @@ function buildElement(el: Nuxeo.Layout) {
   let element: HTMLElement | undefined;
   if (el.is) {
     element = createElement(el as Nuxeo.LayoutElement);
-  } else if (el.elements) {
+  } else if (el.children) {
     const div = document.createElement('div');
-    el.elements.forEach((child) => {
+    el.children.forEach((child) => {
       const content = buildElement(child);
       if (content) {
         div.appendChild(content);
@@ -20,68 +21,106 @@ function buildElement(el: Nuxeo.Layout) {
     element = div;
   }
   if (element) {
-    if (el.layout) {
-      element.className = el.layout;
+    // add field info to `name` attribute
+    if (el.fields) {
+      element.setAttribute('name', el.fields.join('_'));
     }
+    // set flex direction
+    if (el.direction) {
+      element.classList.add(...[el.direction, 'flex']);
+    }
+    // set flex wrap
+    if (el.wrap != null) {
+      element.classList.add('wrap');
+    }
+    // set flex grow fraction
+    if (el.weight != null) {
+      (element as any).style.flex = el.weight.toString();
+    }
+    // support overriding styles (advanced)
     if (el.style) {
-      (element as any).style = el.style;
+      Object.keys(el.style).forEach((k: string) => {
+        // @ts-ignore
+        element.style[k] = el.style[k];
+      });
     }
+    // support overriding classes (advanced)
+    if (el.classList) {
+      element.classList.add(...el.classList);
+    }
+    // support overriding innerHTMK (advanced)
+    if (el.html) {
+      element.innerHTML = el.html;
+    }
+    // handle grid- properties (advanced)
     Object.keys(el)
       .filter((k) => k.match(/^grid-.*$/))
       .forEach((k) => {
-        const ck = k.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-        console.log(`setting: ${ck}`);
-        (element as any).style[ck] = (el as any)[k];
+        const camelCaseKey = k.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+        (element as any).style[camelCaseKey] = (el as any)[k];
       });
   }
   return element;
 }
 
 function createElement(el: Nuxeo.LayoutElement) {
+  const div = document.createElement('div');
+  div.className = el.is.replace(/-/g, ' ') + ' box';
   const span = document.createElement('span');
-  span.className = el.is.replace(/-/g, ' ') + ' box';
-  span.textContent = el.content;
-  return span;
+  span.textContent = el.text;
+  div.appendChild(span);
+  if (el.fields) {
+    const bindings = document.createElement('span');
+    bindings.className = 'bindings';
+    bindings.textContent +=
+      ` (bound to field${el.fields.length > 1 ? 's' : ''}: ${el.fields.map((f) => `"${f}"`).join(',')})`;
+    div.appendChild(bindings);
+  }
+  return div;
 }
 
 const models = [
   // model 1 - simple flex
   {
-    name: 'my-layout-1',
-    layout: 'vertical flex',
-    elements: [
+    name: 'Simple flex layout w/ style, class and innerHTML customization',
+    direction: 'vertical', // vertical | horizontal, includes display: flex; flex: 1 1 auto;
+    children: [
       {
-        is: 'horizontal-flex-main',
-        content: 'Main content',
+        is: 'vertical-flex-main',
+        text: 'Main content',
       },
 
       {
-        layout: 'horizontal flex wrap',
-        elements: [
+        direction: 'horizontal',
+        wrap: true, // defaults to false
+        children: [
           {
-            layout: 'horizontal flex',
-            elements: [
+            direction: 'horizontal',
+            children: [
               {
-                is: 'horizontal-flex-secondary',
-                content: 'Card 1',
+                is: 'vertical-flex-secondary',
+                fields: ['field1'],
+                text: 'Card 1',
               },
             ],
           },
           {
-            layout: 'horizontal flex',
-            elements: [
+            direction: 'horizontal',
+            classList: ['blink'],
+            children: [
               {
-                is: 'horizontal-flex-secondary',
-                content: 'Card 2',
+                is: 'vertical-flex-secondary',
+                fields: ['field2'],
+                text: 'Card 2',
               },
             ],
           },
           {
-            layout: 'horizontal flex',
-            elements: [
+            direction: 'horizontal',
+            children: [
               {
-                is: 'horizontal-flex-secondary',
-                content: 'Card 3',
+                is: 'vertical-flex-secondary',
+                html: 'Card 3<span class="horizontal flex secondary box">Inner Element</span>',
               },
             ],
           },
@@ -89,24 +128,29 @@ const models = [
       },
 
       {
-        layout: 'horizontal flex wrap',
-        elements: [
+        direction: 'horizontal',
+        wrap: true,
+        children: [
           {
-            layout: 'horizontal flex',
-            elements: [
+            direction: 'horizontal',
+            children: [
               {
-                is: 'horizontal-flex-secondary',
-                content: 'Card 4',
+                is: 'vertical-flex-secondary',
+                fields: ['field3'],
+                text: 'Card 4',
               },
             ],
           },
           {
-            layout: 'horizontal flex',
-            style: 'border: 1px red dashed',
-            elements: [
+            direction: 'horizontal',
+            style: {
+              border: '1px red dashed',
+            },
+            children: [
               {
-                is: 'horizontal-flex-secondary',
-                content: 'Card 5',
+                is: 'vertical-flex-secondary',
+                fields: ['field4'],
+                text: 'Card 5',
               },
             ],
           },
@@ -117,51 +161,63 @@ const models = [
 
   // model 2 - 1 column, main content, a few cards and a footer
   {
-    name: 'my-layout-2',
-    layout: 'vertical flex',
-    elements: [
+    name: 'Responsive flex layout w/ columns',
+    direction: 'vertical',
+    children: [
       {
-        layout: 'horizontal flex wrap',
-        elements: [
+        direction: 'horizontal',
+        wrap: true,
+        children: [
           {
-            layout: 'horizontal flex5 wrap',
-            elements: [
+            direction: 'horizontal',
+            wrap: true,
+            weight: 5, // mapped to flex grow factor
+            children: [
               {
-                layout: 'vertical flex wrap',
-                elements: [
+                direction: 'vertical',
+                wrap: true,
+                children: [
                   {
-                    is: 'horizontal-flex-main',
-                    content: 'Main Content',
+                    is: 'vertical-flex-main',
+                    fields: ['field1', 'field2', 'filed3'],
+                    text: 'Main Content',
                   },
 
                   {
-                    layout: 'horizontal flex wrap',
-                    elements: [
+                    direction: 'horizontal',
+                    wrap: true,
+                    children: [
                       {
-                        is: 'horizontal-flex-secondary',
-                        content: 'Card 1',
+                        is: 'vertical-flex-secondary',
+                        fields: ['field4'],
+                        text: 'Card 1',
                       },
                       {
-                        is: 'horizontal-flex-secondary',
-                        content: 'Card 2',
+                        is: 'vertical-flex-secondary',
+                        fields: ['field5'],
+                        text: 'Card 2',
                       },
                       {
-                        is: 'horizontal-flex-secondary',
-                        content: 'Card 3',
+                        is: 'vertical-flex-secondary',
+                        fields: ['field6'],
+                        text: 'Card 3',
                       },
                     ],
                   },
 
                   {
-                    layout: 'horizontal flex wrap',
-                    elements: [
+                    direction: 'horizontal',
+                    wrap: true,
+                    children: [
                       {
-                        is: 'horizontal-flex-secondary',
-                        content: 'Card 1',
+                        is: 'vertical-flex-secondary',
+                        fields: ['field7'],
+                        text: 'Card 1',
                       },
                       {
-                        is: 'horizontal-flex-secondary',
-                        content: 'Card 3',
+                        is: 'vertical-flex-secondary',
+                        fields: ['field8'],
+                        text: 'Card 3',
                       },
                     ],
                   },
@@ -170,11 +226,12 @@ const models = [
             ],
           },
           {
-            layout: 'horizontal flex',
-            elements: [
+            direction: 'horizontal',
+            children: [
               {
                 is: 'vertical-flex-main',
-                content: 'Side bar',
+                fields: ['field9', 'field10'],
+                text: 'Side bar',
               },
             ],
           },
@@ -182,11 +239,12 @@ const models = [
       },
 
       {
-        layout: 'horizontal flex',
-        elements: [
+        direction: 'horizontal',
+        children: [
           {
-            is: 'horizontal-flex-bar',
-            content: 'Some other content',
+            is: 'vertical-flex-bar',
+            fields: ['field11'],
+            text: 'Some other content',
           },
         ],
       },
@@ -195,51 +253,54 @@ const models = [
 
   // model 3 - non-responsive grid layout, with area templates
   {
-    'name': 'my-layout-3',
-    'layout': 'grid',
+    'name': 'Grid layout w/ area templates (experimental)',
+    'classList': ['grid'],
     'grid-template-areas': `"main main main sidebar"
        "card1 card2 card3 sidebar"
        "card4 card4 card5 sidebar"
        "footer footer footer footer"`,
-    'elements': [
+    'children': [
       {
-        'is': 'horizontal-flex-main',
-        'content': 'Main content',
+        'is': 'vertical-flex-main',
+        'text': 'Main content',
+        'fields': ['field1', 'field2'],
         'grid-area': 'main',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 1',
+        'is': 'vertical-flex-secondary',
+        'text': 'Card 1',
+        'fields': ['field3'],
         'grid-area': 'card1',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 2',
+        'is': 'vertical-flex-secondary',
+        'text': 'Card 2',
         'grid-area': 'card2',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 3',
+        'is': 'vertical-flex-secondary',
+        'text': 'Card 3',
         'grid-area': 'card3',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 4',
+        'is': 'vertical-flex-secondary',
+        'text': 'Card 4',
         'grid-area': 'card4',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 5',
+        'is': 'vertical-flex-secondary',
+        'text': 'Card 5',
+        'fields': ['field4'],
         'grid-area': 'card5',
       },
       {
         'is': 'vertical-flex-main',
-        'content': 'Side bar',
+        'text': 'Side bar',
         'grid-area': 'sidebar',
       },
       {
-        'is': 'horizontal-flex-footer',
-        'content': 'Some other content',
+        'is': 'vertical-flex-footer',
+        'text': 'Some other content',
         'grid-area': 'footer',
       },
     ],
@@ -247,47 +308,49 @@ const models = [
 
   // model 4 - responsive grid layout
   {
-    'name': 'my-layout-4',
-    'layout': 'grid',
+    'name': 'Kind of responsive grid layout (experimental)',
+    'classList': ['grid'],
     'grid-template-columns': 'repeat( auto-fill , minmax(184px, 1fr) )',
     'grid-template-rows': 'auto auto auto auto',
     'grid-auto-flow': 'row dense',
-    'elements': [
+    'children': [
       {
-        'is': 'horizontal-flex-main',
-        'content': 'Main content',
+        'is': 'vertical-flex-main',
+        'text': 'Main content',
+        'fields': ['field1', 'field2', 'field3'],
         'grid-row': '1',
         'grid-column': '1 / -2',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 1',
+        is: 'vertical-flex-secondary',
+        text: 'Card 1',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 2',
+        is: 'vertical-flex-secondary',
+        text: 'Card 2',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 3',
+        is: 'vertical-flex-secondary',
+        text: 'Card 3',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 4',
+        'is': 'vertical-flex-secondary',
+        'text': 'Card 4',
         'grid-column': 'auto / span 2',
       },
       {
-        'is': 'horizontal-flex-box',
-        'content': 'Card 5',
+        is: 'vertical-flex-secondary',
+        fields: ['field4', 'field5'],
+        text: 'Card 5',
       },
       {
         'is': 'vertical-flex-main',
-        'content': 'Side bar',
+        'text': 'Side bar',
         'grid-row': '1 / -1',
       },
       {
-        'is': 'horizontal-flex-footer',
-        'content': 'Some other content',
+        'is': 'vertical-flex-footer',
+        'text': 'Some other content',
         'grid-column': '1 / -1',
       },
     ],
@@ -296,6 +359,12 @@ const models = [
 
 @customElement('poc-layout-test')
 class LayoutTest extends LitElement {
+  @property({ type: Number })
+  protected model: number = 0;
+
+  @property({ type: Object })
+  protected layout: Nuxeo.Layout = models[this.model] as Nuxeo.Layout;
+
   protected render() {
     return html`
       ${LayoutStyles} ${SharedStyles}
@@ -325,32 +394,89 @@ class LayoutTest extends LitElement {
         .bar {
           min-height: 64px;
         }
+        #layout {
+          margin-bottom: 32px;
+        }
+        textarea {
+          padding: 8px;
+          background-color: black;
+          color: white;
+          box-sizing: border-box;
+          width: 100%;
+          height: 800px;
+          font-size: 13px;
+          font-family: 'Courier';
+        }
+        .blink {
+          animation: blinker 1s linear infinite;
+        }
+        @keyframes blinker {
+          50% {
+            opacity: 0;
+          }
+        }
+        .bindings {
+          font-size: 12px;
+        }
       </style>
       <poc-page>
+        <span>Layout</span>
         <div slot="header" class="header">
-          <span>${translate('app.menu.layout-test')}</span>
+          <span>${translate('app.layout-test.header')}</span>
+          <div id="model-select">
+            <span>${translate('app.layout-test.model')}:</span>
+            <select
+              id="modeSelect"
+              value="${this.model}"
+              @change="${async () => {
+                const select: HTMLSelectElement | null =
+                  this.shadowRoot &&
+                  this.shadowRoot.querySelector('#modeSelect');
+                this.model = Number(select && select.selectedOptions[0].value);
+                this.layout = models[this.model] as Nuxeo.Layout;
+              }}"
+            >
+              ${repeat(
+                models,
+                (m, index) => html`
+                  <option value="${index}">${m.name}</option>
+                `,
+              )}
+            </select>
+          </div>
         </div>
+        <div id="layout">${this.loadModel(this.layout as Nuxeo.Layout)}</div>
+        <span>JSON</span>
+        <button @click="${this.updateModel}">update</button>
+        <textarea id="model">${JSON.stringify(this.layout, null, 4)}</textarea>
       </poc-page>
     `;
   }
 
-  protected firstUpdated() {
-    const page = this.shadowRoot && this.shadowRoot.querySelector('poc-page');
-    if (page) {
+  protected loadModel(model: Nuxeo.Layout) {
+    if (model) {
       // load model
-      const content = buildElement(models[0] as Nuxeo.Layout);
-      if (content) {
-        page.appendChild(content);
-      }
+      const content = buildElement(model);
       // randomize colors
-      page
-        .querySelectorAll('.box')
-        .forEach(
-          (el) =>
-            ((el as HTMLElement).style.backgroundColor =
-              '#' +
-              (0x1000000 + Math.random() * 0xffffff).toString(16).substr(1, 6)),
-        );
+      if (content) {
+        content
+          .querySelectorAll('.box')
+          .forEach(
+            (el) =>
+              ((el as HTMLElement).style.backgroundColor =
+                '#' +
+                (0x1000000 + Math.random() * 0xffffff).toString(16).substr(1, 6)),
+          );
+      }
+      return content;
+    }
+  }
+
+  protected updateModel() {
+    const model = this.shadowRoot && this.shadowRoot.querySelector('#model') as HTMLTextAreaElement;
+    if (model && model.value) {
+      this.layout = JSON.parse(model.value);
+      this.scrollIntoView();
     }
   }
 }

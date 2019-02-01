@@ -1,4 +1,7 @@
 {
+  "app.language": "Language",
+  "app.layout-test.header": "Runtime Generated Layouts",
+  "app.layout-test.model": "Modèle",
   "app.menu.browse": "Parcourir",
   "app.menu.layout-test": "Test de Layout",
   "app.menu.search": "Recherche",

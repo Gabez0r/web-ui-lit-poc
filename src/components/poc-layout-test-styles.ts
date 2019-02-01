@@ -6,10 +6,12 @@ export const LayoutStyles = html`
     .horizontal {
       display: flex;
       flex-direction: row;
+      flex: 1 1 auto;
     }
     .vertical {
       display: flex;
       flex-direction: column;
+      flex: 1 1 auto;
     }
     .wrap {
       flex-wrap: wrap;
