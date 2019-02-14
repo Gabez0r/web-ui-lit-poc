@@ -30,7 +30,7 @@ import './snack-bar';
 
 import {
   get,
-  ITranslationConfig,
+  ITranslateConfig,
   Key,
   LanguageIdentifier,
   registerTranslateConfig,
@@ -46,7 +46,7 @@ registerTranslateConfig({
     `../i18n/messages${lang && lang !== 'en' ? `-${lang}` : ''}.json`).then(
       (res) => res,
     ),
-  lookup: (key: Key, config: ITranslationConfig) => {
+  lookup: (key: Key, config: ITranslateConfig) => {
     // add a custom lookup function because the default splits keys by `.`
     const translations: Strings | null = config.strings;
     return (
