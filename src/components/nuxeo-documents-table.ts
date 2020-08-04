@@ -40,5 +40,5 @@ class DocsTable extends mixinBehaviors([I18nBehavior], Nuxeo.Element) {
     };
   }
 }
-
+// @ts-ignore
 customElements.define('nuxeo-documents-table', DocsTable);

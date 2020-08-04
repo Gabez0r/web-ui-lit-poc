@@ -30,6 +30,11 @@ const common = merge([
     mode: ENV,
     module: {
       rules: [
+        // fix import.meta
+        {
+          test: /\.js$/,
+          loader: require.resolve('@open-wc/webpack-import-meta-loader/webpack-import-meta-loader.js'),
+        },
         {
           test: /\.ts$/,
           loader: 'ts-loader',

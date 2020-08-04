@@ -10,8 +10,8 @@
 
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 
-/// <reference path="../polymer/types/polymer-element.d.ts" />
+/// <reference path="../node_modules/@polymer/polymer/polymer-element.d.ts" />
 
 declare namespace Nuxeo {
-  class Element extends Polymer.Element {}
+  class Element extends PolymerElement {}
 }

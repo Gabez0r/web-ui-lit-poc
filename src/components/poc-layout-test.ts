@@ -212,12 +212,12 @@ const models = [
                       {
                         is: 'vertical-flex-secondary',
                         fields: ['field7'],
-                        text: 'Card 1',
+                        text: 'Card 4',
                       },
                       {
                         is: 'vertical-flex-secondary',
                         fields: ['field8'],
-                        text: 'Card 3',
+                        text: 'Card 5',
                       },
                     ],
                   },
